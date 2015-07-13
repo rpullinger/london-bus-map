@@ -1,7 +1,221 @@
+/**
+ * London bus map
+ * July 2015
+ * Richard Pullinger
+ * http://pullin.gr
+ */
+/**
+ * Settings
+ */
+/**
+ * Sizes
+ */
+/**
+ * Colors
+ */
+/**
+ * BASE
+ */
+html,
 body {
-  color: red; }
-  body .text {
+  padding: 0;
+  margin: 0; }
+
+/**
+ * Typography
+ */
+body {
+  background: #222;
+  color: #fff;
+  font-family: "p22-underground", sans-serif;
+  font-size: 16px;
+  line-height: 1.2; }
+
+/**
+ * Images
+ */
+img {
+  max-width: 100%; }
+
+/**
+ * Links
+ */
+a {
+  color: #fff;
+  text-decoration: none; }
+  a:hover {
+    color: #e6e6e6; }
+
+/**
+ * Shared vertical rhythm
+ */
+h1, h2, h3, h4, h5, h6,
+ul, ol, dl,
+blockquote, p, address,
+hr,
+table,
+fieldset, legend, figure,
+pre {
+  margin: 0;
+  padding: 0;
+  margin-bottom: 20px; }
+  h1:last-child, h2:last-child, h3:last-child, h4:last-child, h5:last-child, h6:last-child,
+  ul:last-child, ol:last-child, dl:last-child,
+  blockquote:last-child, p:last-child, address:last-child,
+  hr:last-child,
+  table:last-child,
+  fieldset:last-child, legend:last-child, figure:last-child,
+  pre:last-child {
+    margin-bottom: 0; }
+
+/**
+ * Styled checkboxes
+ */
+input[type=checkbox] {
+  display: none; }
+  input[type=checkbox]:checked + label {
+    background-color: #fff;
+    color: #222;
+    border-color: #fff; }
+
+/**
+ * Buttons
+ */
+.btn {
+  display: inline-block;
+  color: #fff;
+  padding: 10px 10px 6px;
+  border: 2px solid;
+  text-transform: uppercase;
+  background: transparent;
+  line-height: 1;
+  cursor: pointer;
+  text-align: center; }
+  .btn:hover {
+    color: currentColor; }
+  .btn[disabled] {
+    cursor: not-allowed; }
+
+h1,
+h2,
+h3 {
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: bold;
+  text-transform: uppercase; }
+
+.page {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: column;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+      -ms-flex-pack: justify;
+          justify-content: space-between; }
+  .page__header,
+  .page__footer {
+    padding: 20px;
     display: -webkit-box;
     display: -webkit-flex;
     display: -ms-flexbox;
-    display: flex; }
+    display: flex;
+    -webkit-box-pack: justify;
+    -webkit-justify-content: space-between;
+        -ms-flex-pack: justify;
+            justify-content: space-between;
+    -webkit-box-align: end;
+    -webkit-align-items: flex-end;
+        -ms-flex-align: end;
+            align-items: flex-end; }
+    .page__header > *,
+    .page__footer > * {
+      z-index: 2; }
+  .page__logo {
+    margin-bottom: 0; }
+  .page__about {
+    color: #fff; }
+  .page__header {
+    text-transform: uppercase;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+        -ms-flex-align: center;
+            align-items: center; }
+  .page__map {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0; }
+
+.interface {
+  -webkit-box-align: end;
+  -webkit-align-items: flex-end;
+      -ms-flex-align: end;
+          align-items: flex-end; }
+  .interface__button {
+    display: block;
+    margin-bottom: 5px; }
+    .interface__button:last-child {
+      margin-bottom: 0; }
+
+.map {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 50%;
+  left: 50%;
+  -webkit-transform: translate(-50%, -50%);
+      -ms-transform: translate(-50%, -50%);
+          transform: translate(-50%, -50%); }
+  .map svg {
+    -webkit-transform-origin: center;
+        -ms-transform-origin: center;
+            transform-origin: center;
+    -webkit-transition: -webkit-transform 0.2s ease-out;
+            transition: transform 0.2s ease-out;
+    max-height: 100%;
+    max-width: 100%; }
+  .map.scale-1 svg {
+    -webkit-transform: scale(1);
+        -ms-transform: scale(1);
+            transform: scale(1); }
+  .map.scale-2 svg {
+    -webkit-transform: scale(2);
+        -ms-transform: scale(2);
+            transform: scale(2); }
+  .map.scale-3 svg {
+    -webkit-transform: scale(4);
+        -ms-transform: scale(4);
+            transform: scale(4); }
+  .map.scale-4 svg {
+    -webkit-transform: scale(8);
+        -ms-transform: scale(8);
+            transform: scale(8); }
+  .map.scale-5 svg {
+    -webkit-transform: scale(16);
+        -ms-transform: scale(16);
+            transform: scale(16); }
+  .map.scale-6 svg {
+    -webkit-transform: scale(32);
+        -ms-transform: scale(32);
+            transform: scale(32); }
+  .map.scale-7 svg {
+    -webkit-transform: scale(64);
+        -ms-transform: scale(64);
+            transform: scale(64); }
+  .map circle {
+    fill: #aaa;
+    cursor: pointer; }
+
+.tooltip {
+  fill: #fff;
+  font-size: 16px; }

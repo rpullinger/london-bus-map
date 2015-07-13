@@ -13,6 +13,11 @@ var bus = (function(){
 
         mapWrapper = d3.select('.js-map');
 
+
+        $('#stops').on('change', function(){
+            $('body').toggleClass('hide-stops', !this.checked);
+        });
+
         // Add elements
         addTooltip();
         mapBusStops();
@@ -37,6 +42,9 @@ var bus = (function(){
         // $(window).on('resize', function() {
         //     $('.js-map').panzoom('resetDimensions');
         // });
+        //
+        //
+
     }
 
     function addTooltip(){
@@ -110,6 +118,7 @@ var bus = (function(){
 
             // Add all the bus stops
             svg.append('g')
+                .classed('stops', true)
                 .selectAll("circle")
                 .data(data)
                 .enter()
@@ -149,7 +158,9 @@ var bus = (function(){
                 .transition()
                 .duration(0)
                 .delay(function(){ return Math.random() * 10000; })
-                .style("opacity", 1)
+                .style("opacity", 1);
+
+            $('#stops').prop('checked', true);
 
         });
     }

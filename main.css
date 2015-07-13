@@ -1,0 +1,7 @@
+body {
+  color: red; }
+  body .text {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex; }

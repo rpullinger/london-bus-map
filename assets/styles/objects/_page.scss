@@ -12,6 +12,7 @@
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
+        z-index: 2; // Bring above the map
     }
 
         &__logo{
@@ -26,4 +27,13 @@
         text-transform: uppercase;
         align-items: center;
     }
+
+    &__map{
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+
 }

@@ -26,7 +26,7 @@ gulp.task('styles', function(){
 gulp.task('scripts', function(){
     gulp.src('./assets/scripts/**/*')
         .pipe(concat('app.js'))
-        .pipe(uglify())
+        // .pipe(uglify())
         .pipe(gulp.dest('./build'));
 });
 

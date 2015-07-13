@@ -105,8 +105,6 @@ h3 {
   text-transform: uppercase; }
 
 .page {
-  height: 100vh;
-  width: 100vw;
   overflow: hidden;
   display: -webkit-box;
   display: -webkit-flex;
@@ -120,7 +118,12 @@ h3 {
   -webkit-box-pack: justify;
   -webkit-justify-content: space-between;
       -ms-flex-pack: justify;
-          justify-content: space-between; }
+          justify-content: space-between;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0; }
   .page__header,
   .page__footer {
     padding: 20px;
@@ -169,53 +172,33 @@ h3 {
 
 .map {
   position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  top: 50%;
-  left: 50%;
-  -webkit-transform: translate(-50%, -50%);
-      -ms-transform: translate(-50%, -50%);
-          transform: translate(-50%, -50%); }
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex; }
   .map svg {
+    margin: auto;
     -webkit-transform-origin: center;
         -ms-transform-origin: center;
             transform-origin: center;
     -webkit-transition: -webkit-transform 0.2s ease-out;
             transition: transform 0.2s ease-out;
-    max-height: 100%;
-    max-width: 100%; }
-  .map.scale-1 svg {
-    -webkit-transform: scale(1);
-        -ms-transform: scale(1);
-            transform: scale(1); }
-  .map.scale-2 svg {
-    -webkit-transform: scale(2);
-        -ms-transform: scale(2);
-            transform: scale(2); }
-  .map.scale-3 svg {
-    -webkit-transform: scale(4);
-        -ms-transform: scale(4);
-            transform: scale(4); }
-  .map.scale-4 svg {
-    -webkit-transform: scale(8);
-        -ms-transform: scale(8);
-            transform: scale(8); }
-  .map.scale-5 svg {
-    -webkit-transform: scale(16);
-        -ms-transform: scale(16);
-            transform: scale(16); }
-  .map.scale-6 svg {
-    -webkit-transform: scale(32);
-        -ms-transform: scale(32);
-            transform: scale(32); }
-  .map.scale-7 svg {
-    -webkit-transform: scale(64);
-        -ms-transform: scale(64);
-            transform: scale(64); }
-  .map circle {
-    fill: #aaa;
-    cursor: pointer; }
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%; }
+
+circle {
+  fill: #999;
+  cursor: pointer; }
+  circle.is-active {
+    fill: #fff; }
 
 .tooltip {
   fill: #fff;
-  font-size: 16px; }
+  font-size: 400%; }

@@ -14,10 +14,11 @@ var bus = (function(){
         mapWrapper = d3.select('.js-map');
 
         // Add elements
-        mapBusStops();
         addTooltip();
+        mapBusStops();
 
         $('.js-map').panzoom({
+            cursor: 'pointer',
             contain: 'invert',
             increment: 1,
             minScale: 1,
@@ -26,14 +27,18 @@ var bus = (function(){
             $zoomOut: $('.js-zoom-out'),
         });
 
-        $(window).on('resize', function() {
-            $('.js-map').panzoom('resetDimensions');
-        });
+
+        if(window.innerWidth < 700){
+            $('.js-map').panzoom("zoom", 2);
+        }
+        // $(window).on('resize', function() {
+        //     $('.js-map').panzoom('resetDimensions');
+        // });
     }
 
     function addTooltip(){
         svg.append('text')
-            .attr('class', 'tooltip');
+            .attr('class', 'tooltip')
     }
 
     function showTooltip(text, x, y){
@@ -88,7 +93,8 @@ var bus = (function(){
             svg.attr("viewBox", "0 0 " + width + " " + height)
 
             // Add all the bus stops
-            svg.append('g').selectAll("circle")
+            svg.append('g')
+                .selectAll("circle")
                 .data(data)
                 .enter()
                 .append("circle")
@@ -99,7 +105,13 @@ var bus = (function(){
                     return d3.round(y(d.Location_Northing), 0);
                 })
                 .attr("r", 2)
+                .style("opacity", 0)
                 .on("mouseover", function(d){
+                    d3.select(this)
+                        .classed('is-active', true);
+
+                    // Show the tooltip
+                    clearTimeout(tooltipTimeout);
                     var stop = d;
                     showTooltip(
                         stop.Stop_Name,
@@ -108,9 +120,20 @@ var bus = (function(){
                     );
                 })
                 .on("mouseout", function(){
+
+                    d3.select(this)
+                        .classed('is-active', false);
+
                     clearTimeout(tooltipTimeout);
                     tooltipTimeout = setTimeout(hideTooltip, 500);
                 });
+
+            // Fade them all in
+            svg.selectAll('circle')
+                .transition()
+                .delay(function(){ return Math.random() * 10000; })
+                .style("opacity", 1)
+
         });
     }
 

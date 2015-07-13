@@ -1,7 +1,9 @@
 var bus = (function(){
 
     var svg,
-        tooltipTimeout
+        tooltipTimeout,
+        mapWrapper;
+        zoom = 1;
 
     function init(){
 
@@ -9,9 +11,13 @@ var bus = (function(){
         svg = d3.select(".map")
             .append("svg")
 
+        mapWrapper = d3.select('.js-map');
+
         // Add elements
         addTooltip();
         mapBusStops();
+
+        setupZoomButtons();
     }
 
     function addTooltip(){
@@ -97,6 +103,38 @@ var bus = (function(){
                     tooltipTimeout = setTimeout(hideTooltip, 500);
                 });
         });
+    }
+
+
+    function setupZoomButtons(){
+        var zoomInButton = d3.select('.js-zoom-in'),
+            zoomOutButton = d3.select('.js-zoom-out');
+
+
+        zoomInButton.on('click', zoomIn);
+        zoomOutButton.on('click', zoomOut);
+    }
+
+    function zoomIn(){
+        d3.event.preventDefault();
+        zoom = zoom < 7 ? zoom + 1 : 7;
+        zoomMap();
+    }
+
+    function zoomOut(){
+        d3.event.preventDefault();
+        zoom = zoom < 2 ? 1 : zoom - 1;
+        zoomMap();
+    }
+
+    function zoomMap(){
+        var scale = "scale-" + zoom;
+
+        for(var i = 0; i < 8; i++){
+            mapWrapper.classed('scale-' + i, false);
+        }
+
+        mapWrapper.classed(scale, true);
     }
 
     return {

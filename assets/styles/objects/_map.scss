@@ -1,6 +1,25 @@
 .map{
 
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 
+    svg{
+        transition: transform 0.2s ease-out;
+        max-height: 100%;
+        max-width: 100%;
+    }
+
+    &.scale-1 svg{ transform: scale(1); }
+    &.scale-2 svg{ transform: scale(2); }
+    &.scale-3 svg{ transform: scale(4); }
+    &.scale-4 svg{ transform: scale(8); }
+    &.scale-5 svg{ transform: scale(16); }
+    &.scale-6 svg{ transform: scale(32); }
+    &.scale-7 svg{ transform: scale(64); }
 
     circle{
         fill: #aaa;

@@ -24,11 +24,23 @@ gulp.task('styles', function(){
  * Concat and compress JS
  */
 gulp.task('scripts', function(){
-    gulp.src('./assets/scripts/**/*')
+    gulp.src('./assets/scripts/*')
         .pipe(concat('app.js'))
         // .pipe(uglify())
         .pipe(gulp.dest('./build'));
 });
+
+
+
+
+/**
+ * Concat and compress JS
+ */
+gulp.task('scripts:vendor', function(){
+    gulp.src('./assets/scripts/vendor/*')
+        .pipe(gulp.dest('./build'));
+});
+
 
 
 
@@ -55,5 +67,6 @@ gulp.task('deploy', function() {
 gulp.task('watch', function(){
     gulp.watch('assets/styles/**/*', ['styles']);
     gulp.watch('assets/scripts/**/*', ['scripts']);
+    gulp.watch('assets/scripts/vendor/*', ['scripts:vendor']);
     gulp.watch('./index.html', ['html']);
 });

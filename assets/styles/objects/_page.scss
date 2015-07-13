@@ -12,7 +12,10 @@
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
-        z-index: 2; // Bring above the map
+
+        > *{
+            z-index: 2; // Bring above the map
+        }
     }
 
         &__logo{

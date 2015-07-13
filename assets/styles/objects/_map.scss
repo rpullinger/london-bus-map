@@ -8,6 +8,7 @@
     transform: translate(-50%, -50%);
 
     svg{
+        transform-origin: center;
         transition: transform 0.2s ease-out;
         max-height: 100%;
         max-width: 100%;

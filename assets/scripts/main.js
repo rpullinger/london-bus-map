@@ -9,15 +9,26 @@ var bus = (function(){
 
         // Add the map
         svg = d3.select(".map")
-            .append("svg")
+            .append("svg");
 
         mapWrapper = d3.select('.js-map');
 
         // Add elements
-        addTooltip();
         mapBusStops();
+        addTooltip();
 
-        setupZoomButtons();
+        $('.js-map').panzoom({
+            contain: 'invert',
+            increment: 1,
+            minScale: 1,
+            maxScale: 10,
+            $zoomIn: $('.js-zoom-in'),
+            $zoomOut: $('.js-zoom-out'),
+        });
+
+        $(window).on('resize', function() {
+            $('.js-map').panzoom('resetDimensions');
+        });
     }
 
     function addTooltip(){
@@ -77,7 +88,7 @@ var bus = (function(){
             svg.attr("viewBox", "0 0 " + width + " " + height)
 
             // Add all the bus stops
-            svg.selectAll("circle")
+            svg.append('g').selectAll("circle")
                 .data(data)
                 .enter()
                 .append("circle")
@@ -89,14 +100,12 @@ var bus = (function(){
                 })
                 .attr("r", 2)
                 .on("mouseover", function(d){
-
                     var stop = d;
                     showTooltip(
                         stop.Stop_Name,
                         d3.round(x(stop.Location_Easting), 0),
                         d3.round(y(stop.Location_Northing), 0)
                     );
-
                 })
                 .on("mouseout", function(){
                     clearTimeout(tooltipTimeout);
@@ -105,39 +114,7 @@ var bus = (function(){
         });
     }
 
-
-    function setupZoomButtons(){
-        var zoomInButton = d3.select('.js-zoom-in'),
-            zoomOutButton = d3.select('.js-zoom-out');
-
-
-        zoomInButton.on('click', zoomIn);
-        zoomOutButton.on('click', zoomOut);
-    }
-
-    function zoomIn(){
-        d3.event.preventDefault();
-        zoom = zoom < 7 ? zoom + 1 : 7;
-        zoomMap();
-    }
-
-    function zoomOut(){
-        d3.event.preventDefault();
-        zoom = zoom < 2 ? 1 : zoom - 1;
-        zoomMap();
-    }
-
-    function zoomMap(){
-        var scale = "scale-" + zoom;
-
-        for(var i = 0; i < 8; i++){
-            mapWrapper.classed('scale-' + i, false);
-        }
-
-        mapWrapper.classed(scale, true);
-    }
-
-    return {
+    return{
         start: init
     }
 

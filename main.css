@@ -200,5 +200,7 @@ circle {
     fill: #fff; }
 
 .tooltip {
-  fill: #fff;
-  font-size: 400%; }
+  fill: #fff; }
+
+.hide-stops .stops {
+  display: none; }

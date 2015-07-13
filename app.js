@@ -13,6 +13,11 @@ var bus = (function(){
 
         mapWrapper = d3.select('.js-map');
 
+
+        $('#stops').on('change', function(){
+            $('body').toggleClass('hide-stops', !this.checked);
+        });
+
         // Add elements
         addTooltip();
         mapBusStops();
@@ -25,6 +30,9 @@ var bus = (function(){
             maxScale: 10,
             $zoomIn: $('.js-zoom-in'),
             $zoomOut: $('.js-zoom-out'),
+        }).on('panzoomzoom', function(e, panzoom, scale, opts){
+            zoom = scale;
+            console.log(zoom);
         });
 
 
@@ -34,20 +42,36 @@ var bus = (function(){
         // $(window).on('resize', function() {
         //     $('.js-map').panzoom('resetDimensions');
         // });
+        //
+        //
+
     }
 
     function addTooltip(){
         svg.append('text')
             .attr('class', 'tooltip')
+            .attr('text-anchor', "middle");
     }
 
     function showTooltip(text, x, y){
         var tooltip = d3.select('.tooltip')
-            .transition()
+            .attr('font-size', 100)
+            .text(text)
+
+
+        var bb = tooltip.node().getBBox(),
+            widthTransform = 3000 / bb.width,
+            heightTransform = window.innerHeight / bb.height;
+
+
+        var value = 50 * widthTransform / zoom;
+        tooltip
+            .attr("font-size", value);
+
+        tooltip.transition()
             .duration(200)
             .attr("x", x)
-            .attr("y", y)
-            .text(text);
+            .attr("y", y - 10)
     }
 
     function hideTooltip(){
@@ -94,6 +118,7 @@ var bus = (function(){
 
             // Add all the bus stops
             svg.append('g')
+                .classed('stops', true)
                 .selectAll("circle")
                 .data(data)
                 .enter()
@@ -131,8 +156,11 @@ var bus = (function(){
             // Fade them all in
             svg.selectAll('circle')
                 .transition()
+                .duration(0)
                 .delay(function(){ return Math.random() * 10000; })
-                .style("opacity", 1)
+                .style("opacity", 1);
+
+            $('#stops').prop('checked', true);
 
         });
     }

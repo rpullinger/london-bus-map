@@ -1,0 +1,13 @@
+
+/**
+ * Styled checkboxes
+ */
+input[type=checkbox]{
+    display: none;
+
+    &:checked + label{
+        background-color: $color-light;
+        color: $color-dark;
+        border-color: $color-light;
+    }
+}

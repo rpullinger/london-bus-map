@@ -5,10 +5,46 @@
     <title>Document</title>
 
     <link rel="stylesheet" href="main.css">
-</head>
-<body>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <h1>London bus map</h1>
+    <meta >
+
+    <script async>
+        (function(d) {
+            var config = {
+                kitId: 'psi2ccg',
+                scriptTimeout: 3000
+            },
+            h=d.documentElement,t=setTimeout(function(){h.className=h.className.replace(/\bwf-loading\b/g,"")+" wf-inactive";},config.scriptTimeout),tk=d.createElement("script"),f=false,s=d.getElementsByTagName("script")[0],a;h.className+=" wf-loading";tk.src='//use.typekit.net/'+config.kitId+'.js';tk.async=true;tk.onload=tk.onreadystatechange=function(){a=this.readyState;if(f||a&&a!="complete"&&a!="loaded")return;f=true;clearTimeout(t);try{Typekit.load(config)}catch(e){}};s.parentNode.insertBefore(tk,s)
+        })(document);
+    </script>
+
+</head>
+<body class="page">
+
+    <div class="page__header">
+        <h1 class="page__logo">London bus map</h1>
+        <nav class="page__about">
+            <a href="#about">about</a>
+        </nav>
+    </div>
+
+    <form class="page__footer">
+        <div class="zoom interface">
+            <a href="" class="btn interface__button">+</a>
+            <a href="" disabled class="btn interface__button">-</a>
+        </div>
+
+        <div class="interface">
+            <input type="checkbox" id="stops">
+            <label class="btn interface__button" for="stops">Stops</label>
+            <input type="checkbox" id="buses">
+            <label class="btn interface__button" for="buses">Buses</label>
+            <input type="checkbox" id="routes">
+            <label class="btn interface__button" for="routes">Routes</label>
+        </div>
+    </form>
+
     <script src="app.js"></script>
 </body>
 </html>

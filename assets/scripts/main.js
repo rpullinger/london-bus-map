@@ -52,9 +52,12 @@ var bus = (function(){
     }
 
     function addTooltip(){
-        svg.append('text')
+        var tooltipBox = svg.append('g')
             .attr('class', 'tooltip')
+            .append('text')
             .attr('text-anchor', "middle");
+
+
     }
 
     function showTooltip(text, x, y, fill){
@@ -62,28 +65,33 @@ var bus = (function(){
         if (!fill) { fill = '#fff'; }
 
         var tooltip = d3.select('.tooltip')
+
+
+        var text = tooltip.select('text')
             .attr('font-size', 100)
             .attr('style', 'fill:' + fill)
             .text(text)
 
-
-        var bb = tooltip.node().getBBox(),
+        var bb = text.node().getBBox(),
             widthTransform = 3000 / bb.width,
             heightTransform = window.innerHeight / bb.height;
 
-
         var value = 50 * widthTransform / zoom;
-        tooltip
-            .attr("font-size", value);
+        text.attr("font-size", value);
 
         tooltip.transition()
             .duration(200)
-            .attr("x", x)
-            .attr("y", y - 10)
+            .attr("transform", "translate(" + x + "," + (y - 5) + ")")
+            // .attr("x", x)
+            // .attr("y", y - 10)
+    }
+
+    function resizeText(){
+
     }
 
     function hideTooltip(){
-        d3.select('.tooltip')
+        d3.select('.tooltip text')
             .transition()
             .text('');
     }
@@ -138,32 +146,10 @@ var bus = (function(){
                     return d3.round(y(d.Location_Northing), 0);
                 })
                 .attr("r", 1)
-                .style("opacity", 0)
-                .on("mouseover", function(d){
-                    d3.select(this)
-                        .classed('is-active', true);
-
-                    // Show the tooltip
-                    clearTimeout(tooltipTimeout);
-                    var stop = d;
-                    showTooltip(
-                        stop.Stop_Name,
-                        d3.round(x(stop.Location_Easting), 0),
-                        d3.round(y(stop.Location_Northing), 0)
-                    );
-                })
-                .on("mouseout", function(){
-
-                    d3.select(this)
-                        .classed('is-active', false);
-
-                    clearTimeout(tooltipTimeout);
-                    tooltipTimeout = setTimeout(hideTooltip, 500);
-                });
-
-            // Fade them all in
-            svg.selectAll('circle')
-                .style("opacity", 1);
+                .on("mouseover", setActive)
+                .on("touchstart", setActive)
+                .on("mouseout", setUnActive)
+                .on("touchend", setUnActive);
 
             // Stops
             stops = [];
@@ -173,17 +159,35 @@ var bus = (function(){
             });
 
 
+
             // Enable stops toggle
             $('#stops').prop('checked', true);
 
 
             d3.json('routes.json', function(error, routes){
 
-                //var routes = routes.split(',');
-                console.log(routes);
-                _.each(routes, function(object, key){
-                    showBuses(object);
-                });
+                var routesCopy = routes.slice();
+                var interval = 50;
+                var makeCallback = function() {
+                    return function() {
+                        // console.log(routesCopy.length, routes.length);
+                        if (routesCopy.length < 1) {
+                            routesCopy = routes.slice();
+                        }
+
+                        var route = routesCopy.shift();
+
+
+                        showBuses(route);
+                        d3.timer(makeCallback(), interval);
+                        return true;
+                    }
+                };
+
+                //makeCallback();
+                d3.timer(makeCallback(), 0);
+
+
                 $('#buses').prop('checked', true);
             });
 
@@ -191,10 +195,33 @@ var bus = (function(){
     }
 
 
+    function setActive(d){
+
+        d3.select(this)
+            .classed('is-active', true);
+
+        // Show the tooltip
+        clearTimeout(tooltipTimeout);
+        var stop = d;
+        showTooltip(
+            stop.Stop_Name,
+            d3.round(x(stop.Location_Easting), 0),
+            d3.round(y(stop.Location_Northing), 0)
+        );
+    }
+
+    function setUnActive(d){
+         d3.select(this)
+            .classed('is-active', false);
+
+        clearTimeout(tooltipTimeout);
+        tooltipTimeout = setTimeout(hideTooltip, 500);
+    }
+
     function showBuses(line){
         d3.text('http://countdown.api.tfl.gov.uk/interfaces/ura/instant_V1?LineName='+ line + '&DirectionID=1&ReturnList=StopCode1,EstimatedTime,RegistrationNumber', function(error, busData) {
 
-            console.log('Load –', line);
+            // console.log('Load –', line);
 
             // TFL data doesn't come as proper json - fix that
             busData = '[' + busData.replace(/]/gi, '],');
@@ -221,9 +248,7 @@ var bus = (function(){
 
 
             // Use registration as key - helpful if we want to refresh in the future
-            var bus = svg.append('g')
-                .classed('buses', true)
-                .selectAll('.bus' + line)
+            var bus = svg.selectAll('.bus' + line)
                 .data(obj, function(d) { return d.registrationNumber; });
 
             // Add Buses
@@ -247,29 +272,30 @@ var bus = (function(){
                     return d3.round(y(d.stop.Location_Northing), 0);
                 })
                 .attr("r", 2)
-                .on("mouseover", function(d){
-                    // Show the tooltip
-                    clearTimeout(tooltipTimeout);
-                    var stop = d;
-                    showTooltip(
-                        line + "(" + d.registrationNumber + ') arriving at \n ' + d.stop.Stop_Name + ' in ' + d.estimatedTime,
-                        d3.round(x(d.stop.Location_Easting), 0),
-                        d3.round(y(d.stop.Location_Northing), 0)
-                    );
-                })
-                .on("mouseout", function(){
-                    clearTimeout(tooltipTimeout);
-                    tooltipTimeout = setTimeout(hideTooltip, 500);
-                })
+                .on("mouseover", busHover)
+                .on("touchstart", busHover)
+                .on("mouseout", busUnHover)
+                .on("touchend", busUnHover)
                 .attr("style", "fill: #FF1800");
 
                 bus.exit().remove();
-
-
-                // d3.timer(function(line){
-                //     showBuses(line)
-                // }, 30100);
         });
+
+        function busHover(d){
+            // Show the tooltip
+            clearTimeout(tooltipTimeout);
+            var stop = d;
+            showTooltip(
+                line + ' arriving at ' + d.stop.Stop_Name + ' in ' + d.estimatedTime + ' mins',
+                d3.round(x(d.stop.Location_Easting), 0),
+                d3.round(y(d.stop.Location_Northing), 0)
+            );
+        }
+
+        function busUnHover(d){
+            clearTimeout(tooltipTimeout);
+            tooltipTimeout = setTimeout(hideTooltip, 500);
+        }
     }
 
     return{

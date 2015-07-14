@@ -194,7 +194,7 @@ h3 {
     height: 100%; }
 
 circle {
-  fill: #999;
+  fill: #666;
   cursor: pointer; }
   circle.is-active {
     fill: #fff; }
@@ -203,4 +203,7 @@ circle {
   fill: #fff; }
 
 .hide-stops .stops {
+  display: none; }
+
+.hide-buses .buses {
   display: none; }

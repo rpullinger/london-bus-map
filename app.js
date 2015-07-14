@@ -147,9 +147,9 @@ var bus = (function(){
                 })
                 .attr("r", 1)
                 .on("mouseover", setActive)
-                .on("touchstart", setActive)
+                // .on("touchstart", setActive)
                 .on("mouseout", setUnActive)
-                .on("touchend", setUnActive);
+                // .on("touchend", setUnActive);
 
             // Stops
             stops = [];
@@ -167,25 +167,38 @@ var bus = (function(){
             d3.json('routes.json', function(error, routes){
 
                 var routesCopy = routes.slice();
-                var interval = 50;
-                var makeCallback = function() {
-                    return function() {
-                        // console.log(routesCopy.length, routes.length);
-                        if (routesCopy.length < 1) {
-                            routesCopy = routes.slice();
-                        }
+                // var interval = 50;
+                // var makeCallback = function() {
+                //     return function() {
+                //         // console.log(routesCopy.length, routes.length);
+                //         if (routesCopy.length < 1) {
+                //             routesCopy = routes.slice();
+                //         }
 
-                        var route = routesCopy.shift();
+                //         var route = routesCopy.shift();
 
 
-                        showBuses(route);
-                        d3.timer(makeCallback(), interval);
-                        return true;
+                //         showBuses(route);
+                //         d3.timer(makeCallback(), interval);
+                //         return true;
+                //     }
+                // };
+
+                function draw(){
+
+                    if (routesCopy.length < 1) {
+                        routesCopy = routes.slice();
                     }
+
+                    var route = routesCopy.shift();
+                    requestAnimationFrame(draw);
+                    showBuses(route);
                 };
 
+                draw();
+
                 //makeCallback();
-                d3.timer(makeCallback(), 0);
+                // d3.timer(makeCallback(), 0);
 
 
                 $('#buses').prop('checked', true);
@@ -219,7 +232,7 @@ var bus = (function(){
     }
 
     function showBuses(line){
-        d3.text('http://countdown.api.tfl.gov.uk/interfaces/ura/instant_V1?LineName='+ line + '&DirectionID=1&ReturnList=StopCode1,EstimatedTime,RegistrationNumber', function(error, busData) {
+        d3.text('http://countdown.api.tfl.gov.uk/interfaces/ura/instant_V1?LineName='+ line + '&ReturnList=StopCode1,EstimatedTime,RegistrationNumber', function(error, busData) {
 
             // console.log('Load –', line);
 
@@ -273,9 +286,9 @@ var bus = (function(){
                 })
                 .attr("r", 2)
                 .on("mouseover", busHover)
-                .on("touchstart", busHover)
+                // .on("touchstart", busHover)
                 .on("mouseout", busUnHover)
-                .on("touchend", busUnHover)
+                // .on("touchend", busUnHover)
                 .attr("style", "fill: #FF1800");
 
                 bus.exit().remove();

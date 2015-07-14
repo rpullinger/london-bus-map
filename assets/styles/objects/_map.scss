@@ -20,7 +20,7 @@
 }
 
 circle{
-    fill: #999;
+    fill: #666;
     cursor: pointer;
 
     &.is-active{
@@ -37,6 +37,12 @@ circle{
 
 .hide-stops{
     .stops{
+        display: none;
+    }
+}
+
+.hide-buses{
+    .buses{
         display: none;
     }
 }

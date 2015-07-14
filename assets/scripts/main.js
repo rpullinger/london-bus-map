@@ -21,6 +21,10 @@ var bus = (function(){
             $('body').toggleClass('hide-stops', !this.checked);
         });
 
+        $('#buses').on('change', function(){
+            $('body').toggleClass('hide-buses', !this.checked);
+        });
+
         // Add elements
         mapBusStops();
         addTooltip();
@@ -30,7 +34,7 @@ var bus = (function(){
             contain: 'invert',
             increment: 1,
             minScale: 1,
-            maxScale: 10,
+            maxScale: 15,
             $zoomIn: $('.js-zoom-in'),
             $zoomOut: $('.js-zoom-out'),
         }).on('panzoomzoom', function(e, panzoom, scale, opts){
@@ -39,11 +43,12 @@ var bus = (function(){
         });
 
 
+        var startZoom = 1.5;
         if(window.innerWidth < 700){
-            $('.js-map').panzoom("zoom", 2);
+            startZoom = 2;
         }
+        $('.js-map').panzoom("zoom", 1.5);
 
-        //showBuses(76);
     }
 
     function addTooltip(){
@@ -132,7 +137,7 @@ var bus = (function(){
                 .attr("cy", function(d) {
                     return d3.round(y(d.Location_Northing), 0);
                 })
-                .attr("r", 2)
+                .attr("r", 1)
                 .style("opacity", 0)
                 .on("mouseover", function(d){
                     d3.select(this)
@@ -158,47 +163,30 @@ var bus = (function(){
 
             // Fade them all in
             svg.selectAll('circle')
-                //.transition()
-                //.duration(0)
-                //.delay(function(d){ return Math.random() * 10000; })
                 .style("opacity", 1);
 
             // Stops
-            //
-
-            // var stopIds = _.pluck(data, 'Bus_Stop_Code');
-
-            // stops = data.map(function(object, key){
-            //     return object.Bus_Stop_Code = object;
-            // });
-
             stops = [];
 
             _.each(data, function(stop, key) {
                 stops[stop.Bus_Stop_Code] = stop;
             });
 
-            console.log(stops);
 
             // Enable stops toggle
             $('#stops').prop('checked', true);
 
-            var i = 1;
-            var time;
-            function draw(){
 
-                if (i < 700){
-                    //i = 1;
-                    requestAnimationFrame(draw);
-                }
-                showBuses(i);
-                i++
-            };
+            d3.json('routes.json', function(error, routes){
 
-            draw();
+                //var routes = routes.split(',');
+                console.log(routes);
+                _.each(routes, function(object, key){
+                    showBuses(object);
+                });
+                $('#buses').prop('checked', true);
+            });
 
-
-            // showBuses(76);
         });
     }
 
@@ -206,8 +194,7 @@ var bus = (function(){
     function showBuses(line){
         d3.text('http://countdown.api.tfl.gov.uk/interfaces/ura/instant_V1?LineName='+ line + '&DirectionID=1&ReturnList=StopCode1,EstimatedTime,RegistrationNumber', function(error, busData) {
 
-
-            // console.log(busData);
+            console.log('Load –', line);
 
             // TFL data doesn't come as proper json - fix that
             busData = '[' + busData.replace(/]/gi, '],');
@@ -234,7 +221,9 @@ var bus = (function(){
 
 
             // Use registration as key - helpful if we want to refresh in the future
-            var bus = svg.selectAll('.bus' + line)
+            var bus = svg.append('g')
+                .classed('buses', true)
+                .selectAll('.bus' + line)
                 .data(obj, function(d) { return d.registrationNumber; });
 
             // Add Buses
@@ -257,7 +246,7 @@ var bus = (function(){
                 .attr("cy", function(d) {
                     return d3.round(y(d.stop.Location_Northing), 0);
                 })
-                .attr("r", 3)
+                .attr("r", 2)
                 .on("mouseover", function(d){
                     // Show the tooltip
                     clearTimeout(tooltipTimeout);
@@ -265,22 +254,21 @@ var bus = (function(){
                     showTooltip(
                         line + "(" + d.registrationNumber + ') arriving at \n ' + d.stop.Stop_Name + ' in ' + d.estimatedTime,
                         d3.round(x(d.stop.Location_Easting), 0),
-                        d3.round(y(d.stop.Location_Northing), 0),
-                        'red'
+                        d3.round(y(d.stop.Location_Northing), 0)
                     );
                 })
                 .on("mouseout", function(){
                     clearTimeout(tooltipTimeout);
                     tooltipTimeout = setTimeout(hideTooltip, 500);
                 })
-                .attr("style", "fill: red");
+                .attr("style", "fill: #FF1800");
 
                 bus.exit().remove();
 
-            // setTimeout(function(){
-            //     console.log('Refresh - ', line);
-            //     showBuses(line);
-            // }, 30100);
+
+                // d3.timer(function(line){
+                //     showBuses(line)
+                // }, 30100);
         });
     }
 

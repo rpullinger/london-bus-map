@@ -39,7 +39,6 @@ var bus = (function(){
             $zoomOut: $('.js-zoom-out'),
         }).on('panzoomzoom', function(e, panzoom, scale, opts){
             zoom = scale;
-            console.log(zoom);
         });
 
 
@@ -56,8 +55,6 @@ var bus = (function(){
             .attr('class', 'tooltip')
             .append('text')
             .attr('text-anchor', "middle");
-
-
     }
 
     function showTooltip(text, x, y, fill){
@@ -76,14 +73,14 @@ var bus = (function(){
             widthTransform = 3000 / bb.width,
             heightTransform = window.innerHeight / bb.height;
 
-        var value = 50 * widthTransform / zoom;
+        var modifier = zoom > 2 ? zoom / 2 : zoom;
+
+        var value = 50 * widthTransform / modifier;
         text.attr("font-size", value);
 
         tooltip.transition()
             .duration(200)
             .attr("transform", "translate(" + x + "," + (y - 5) + ")")
-            // .attr("x", x)
-            // .attr("y", y - 10)
     }
 
     function resizeText(){
@@ -167,39 +164,28 @@ var bus = (function(){
             d3.json('routes.json', function(error, routes){
 
                 var routesCopy = routes.slice();
-                // var interval = 50;
-                // var makeCallback = function() {
-                //     return function() {
-                //         // console.log(routesCopy.length, routes.length);
-                //         if (routesCopy.length < 1) {
-                //             routesCopy = routes.slice();
-                //         }
-
-                //         var route = routesCopy.shift();
-
-
-                //         showBuses(route);
-                //         d3.timer(makeCallback(), interval);
-                //         return true;
-                //     }
-                // };
-
+                var i = 0;
+                var perRequest = 10;
+                var then = Date.now();
                 function draw(){
+                    var route = routesCopy.slice(i, i + perRequest - 1);
+                    i = i + perRequest;
+                    route = route.join(',');
 
-                    if (routesCopy.length < 1) {
-                        routesCopy = routes.slice();
+                    if (route){
+                        showBuses(route);
+                    } else{
+                        if (Date.now() - then > 30000){
+                            then = Date.now();
+                            i = 0;
+                            routesCopy = routes.slice();
+                        }
                     }
 
-                    var route = routesCopy.shift();
                     requestAnimationFrame(draw);
-                    showBuses(route);
                 };
 
                 draw();
-
-                //makeCallback();
-                // d3.timer(makeCallback(), 0);
-
 
                 $('#buses').prop('checked', true);
             });
@@ -232,25 +218,26 @@ var bus = (function(){
     }
 
     function showBuses(line){
-        d3.text('http://countdown.api.tfl.gov.uk/interfaces/ura/instant_V1?LineName='+ line + '&ReturnList=StopCode1,EstimatedTime,RegistrationNumber', function(error, busData) {
+        d3.text('http://countdown.api.tfl.gov.uk/interfaces/ura/instant_V1?LineName='+ line + '&ReturnList=StopCode1,EstimatedTime,RegistrationNumber,LineName', function(error, busData) {
 
             // console.log('Load –', line);
 
             // TFL data doesn't come as proper json - fix that
             busData = '[' + busData.replace(/]/gi, '],');
             busData = busData.slice(0, - 1) + ']';
-            // console.log(busData);
             var json = JSON.parse(busData);
             json.shift();
 
 
             // Map to real names
             var obj = json.map(function mapItem(item){
+                //console.log(item);
                 //var stop = stops.filter(function(stop) { return stop.Bus_Stop_Code === item[1] });
                 return {
+                    'lineName': item[2],
                     'stopID' : item[1],
-                    'registrationNumber' : item[2],
-                    'estimatedTime' : Math.floor((+[item[3]] - (+new Date())) /60000),
+                    'registrationNumber' : item[3],
+                    'estimatedTime' : Math.floor((+[item[4]] - (+new Date())) /60000),
                     'stop': stops[item[1]]
                 }
             });
@@ -260,23 +247,15 @@ var bus = (function(){
             obj = _.uniq(obj, 'registrationNumber');
 
 
-            // Use registration as key - helpful if we want to refresh in the future
-            var bus = svg.selectAll('.bus' + line)
-                .data(obj, function(d) { return d.registrationNumber; });
+            var group = line.split(',')[0];
 
-            // Add Buses
-            bus.transition()
-                .duration(1000)
-                .attr("cx", function(d) {
-                    return d3.round(x(d.stop.Location_Easting), 0);
-                })
-                .attr("cy", function(d) {
-                    return d3.round(y(d.stop.Location_Northing), 0);
-                });
+            // Use registration as key - helpful if we want to refresh in the future
+            var bus = svg.selectAll('.bus' + group)
+                .data(obj, function(d) { return d.registrationNumber; });
 
             bus.enter()
                 .append("circle")
-                .attr('class', 'bus' + line)
+                .attr('class', 'bus' + group)
                 .attr("cx", function(d) {
                     // console.log('Enter - ', d.registrationNumber, d.estimatedTime);
                     return d3.round(x(d.stop.Location_Easting), 0);
@@ -289,9 +268,29 @@ var bus = (function(){
                 // .on("touchstart", busHover)
                 .on("mouseout", busUnHover)
                 // .on("touchend", busUnHover)
-                .attr("style", "fill: #FF1800");
+                .attr("style", function(d){
+                    return d.lineName.indexOf('RB') ? "fill: #FF1800" : "fill: #738FFF"
+                })
+                // .attr('opacity', 0)
 
                 bus.exit().remove();
+
+            bus.transition()
+                .duration(0)
+                //.delay(function(){ return Math.random() * 29000 })
+                .attr('opacity', 1);
+
+            // Add Buses
+            bus.transition()
+                .duration(1000)
+                .delay(1)
+                .attr("cx", function(d) {
+                    return d3.round(x(d.stop.Location_Easting), 0);
+                })
+                .attr("cy", function(d) {
+                    return d3.round(y(d.stop.Location_Northing), 0);
+                });
+
         });
 
         function busHover(d){
@@ -299,7 +298,7 @@ var bus = (function(){
             clearTimeout(tooltipTimeout);
             var stop = d;
             showTooltip(
-                line + ' arriving at ' + d.stop.Stop_Name + ' in ' + d.estimatedTime + ' mins',
+                d.lineName + ' arriving at ' + d.stop.Stop_Name + ' in ' + d.estimatedTime + ' mins',
                 d3.round(x(d.stop.Location_Easting), 0),
                 d3.round(y(d.stop.Location_Northing), 0)
             );

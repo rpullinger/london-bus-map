@@ -197,7 +197,7 @@ circle {
   fill: #666;
   cursor: pointer; }
   circle.is-active {
-    fill: #fff; }
+    fill: #fff !important; }
 
 .tooltip {
   fill: #fff; }

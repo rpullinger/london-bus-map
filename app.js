@@ -29,6 +29,7 @@ var bus = (function(){
         mapBusStops();
         addTooltip();
 
+
         $('.js-map').panzoom({
             cursor: 'pointer',
             contain: 'invert',
@@ -39,7 +40,6 @@ var bus = (function(){
             $zoomOut: $('.js-zoom-out'),
         }).on('panzoomzoom', function(e, panzoom, scale, opts){
             zoom = scale;
-            console.log(zoom);
         });
 
 
@@ -53,47 +53,67 @@ var bus = (function(){
 
     function addTooltip(){
         var tooltipBox = svg.append('g')
-            .attr('class', 'tooltip')
-            .append('text')
-            .attr('text-anchor', "middle");
-
+            .attr('class', 'tooltip');
 
     }
 
-    function showTooltip(text, x, y, fill){
+    function showTooltip(text, x, y){
 
-        if (!fill) { fill = '#fff'; }
+        text.reverse();
 
-        var tooltip = d3.select('.tooltip')
+        var tooltip = d3.select('.tooltip');
 
 
-        var text = tooltip.select('text')
+        var tooltips = tooltip
+            .html('')
+            .selectAll('.lines')
+            .data(text)
+            .enter()
+            .append('text')
+            .text(function(d){ return d; })
             .attr('font-size', 100)
-            .attr('style', 'fill:' + fill)
-            .text(text)
+            .attr('style', 'fill: #fff')
+            .attr('y', function(d, i){ return 0;  })
+            .attr('text-anchor', 'middle');
 
-        var bb = text.node().getBBox(),
-            widthTransform = 3000 / bb.width,
-            heightTransform = window.innerHeight / bb.height;
+        tooltips.each(resizeText);
 
-        var value = 50 * widthTransform / zoom;
-        text.attr("font-size", value);
+        var offset = 0;
+        tooltips.attr('y', function(d, i){
+            var y = offset,
+                height = +this.getAttribute('font-size');
+                offset = offset - height;
+            return y;
+        });
+
+
 
         tooltip.transition()
             .duration(200)
             .attr("transform", "translate(" + x + "," + (y - 5) + ")")
-            // .attr("x", x)
-            // .attr("y", y - 10)
     }
 
-    function resizeText(){
+    function resizeText(selection){
+        var bb = this.getBBox(),
+            maxWidth = window.innerWidth,
+            widthTransform = maxWidth / bb.width,
+            modifier = zoom > 2 ? zoom / 1 : zoom,
+            value = 75 * widthTransform / modifier;
 
+        if (value > 500){
+            value = 500;
+        }
+
+        this.setAttribute("font-size", value);
+    }
+
+    function alignText(selection){
+        this.selectAll()
     }
 
     function hideTooltip(){
-        d3.select('.tooltip text')
-            .transition()
-            .text('');
+        d3.selectAll('.tooltip text')
+            .remove();
     }
 
     function mapBusStops(){
@@ -127,7 +147,7 @@ var bus = (function(){
             x = d3.scale.linear()
                 .range([0, width])
                 .domain([minEasting, maxEasting ])
-            .nice();
+                .nice();
 
             // Set viewBox of the svg
             svg.attr("viewBox", "0 0 " + width + " " + height)
@@ -153,7 +173,6 @@ var bus = (function(){
 
             // Stops
             stops = [];
-
             _.each(data, function(stop, key) {
                 stops[stop.Bus_Stop_Code] = stop;
             });
@@ -167,90 +186,80 @@ var bus = (function(){
             d3.json('routes.json', function(error, routes){
 
                 var routesCopy = routes.slice();
-                // var interval = 50;
-                // var makeCallback = function() {
-                //     return function() {
-                //         // console.log(routesCopy.length, routes.length);
-                //         if (routesCopy.length < 1) {
-                //             routesCopy = routes.slice();
-                //         }
-
-                //         var route = routesCopy.shift();
-
-
-                //         showBuses(route);
-                //         d3.timer(makeCallback(), interval);
-                //         return true;
-                //     }
-                // };
-
+                var i = 0;
+                var perRequest = 10;
+                var then = Date.now();
                 function draw(){
+                    var route = routesCopy.slice(i, i + perRequest - 1);
+                    i = i + perRequest;
+                    route = route.join(',');
 
-                    if (routesCopy.length < 1) {
-                        routesCopy = routes.slice();
+                    if (route){
+                        showBuses(route);
+                    } else{
+                        if (Date.now() - then > 30000){
+                            then = Date.now();
+                            i = 0;
+                            routesCopy = routes.slice();
+                        }
                     }
 
-                    var route = routesCopy.shift();
                     requestAnimationFrame(draw);
-                    showBuses(route);
                 };
 
                 draw();
-
-                //makeCallback();
-                // d3.timer(makeCallback(), 0);
-
 
                 $('#buses').prop('checked', true);
             });
 
         });
-    }
 
+        function setActive(d){
 
-    function setActive(d){
+            d3.select(this)
+                .classed('is-active', true);
 
-        d3.select(this)
-            .classed('is-active', true);
+            // Show the tooltip
+            clearTimeout(tooltipTimeout);
+            var stop = d;
+            showTooltip(
+                [stop.Stop_Name],
+                d3.round(x(stop.Location_Easting), 0),
+                d3.round(y(stop.Location_Northing), 0)
+            );
+        }
 
-        // Show the tooltip
-        clearTimeout(tooltipTimeout);
-        var stop = d;
-        showTooltip(
-            stop.Stop_Name,
-            d3.round(x(stop.Location_Easting), 0),
-            d3.round(y(stop.Location_Northing), 0)
-        );
-    }
+        function setUnActive(d){
+             d3.select(this)
+                .classed('is-active', false);
 
-    function setUnActive(d){
-         d3.select(this)
-            .classed('is-active', false);
-
-        clearTimeout(tooltipTimeout);
-        tooltipTimeout = setTimeout(hideTooltip, 500);
+            clearTimeout(tooltipTimeout);
+            tooltipTimeout = setTimeout(hideTooltip, 500);
+        }
     }
 
     function showBuses(line){
-        d3.text('http://countdown.api.tfl.gov.uk/interfaces/ura/instant_V1?LineName='+ line + '&ReturnList=StopCode1,EstimatedTime,RegistrationNumber', function(error, busData) {
+        d3.text('http://countdown.api.tfl.gov.uk/interfaces/ura/instant_V1?LineName='+ line + '&ReturnList=StopCode1,EstimatedTime,RegistrationNumber,LineName,DestinationName', function(error, busData) {
 
             // console.log('Load –', line);
 
             // TFL data doesn't come as proper json - fix that
             busData = '[' + busData.replace(/]/gi, '],');
             busData = busData.slice(0, - 1) + ']';
-            // console.log(busData);
             var json = JSON.parse(busData);
             json.shift();
 
 
             // Map to real names
             var obj = json.map(function mapItem(item){
+                //console.log(item);
                 //var stop = stops.filter(function(stop) { return stop.Bus_Stop_Code === item[1] });
                 return {
-                    'stopID' : item[1],
-                    'registrationNumber' : item[2],
-                    'estimatedTime' : Math.floor((+[item[3]] - (+new Date())) /60000),
+                    'lineName': item[2],
+                    'stopID': item[1],
+                    'destination': item[3],
+                    'registrationNumber': item[4],
+                    'estimatedTime': Math.floor((+[item[5]] - (+new Date())) /60000),
                     'stop': stops[item[1]]
                 }
             });
@@ -260,23 +269,15 @@ var bus = (function(){
             obj = _.uniq(obj, 'registrationNumber');
 
 
-            // Use registration as key - helpful if we want to refresh in the future
-            var bus = svg.selectAll('.bus' + line)
-                .data(obj, function(d) { return d.registrationNumber; });
+            var group = line.split(',')[0];
 
-            // Add Buses
-            bus.transition()
-                .duration(1000)
-                .attr("cx", function(d) {
-                    return d3.round(x(d.stop.Location_Easting), 0);
-                })
-                .attr("cy", function(d) {
-                    return d3.round(y(d.stop.Location_Northing), 0);
-                });
+            // Use registration as key - helpful if we want to refresh in the future
+            var bus = svg.selectAll('.bus' + group)
+                .data(obj, function(d) { return d.registrationNumber; });
 
             bus.enter()
                 .append("circle")
-                .attr('class', 'bus' + line)
+                .attr('class', 'bus' + group)
                 .attr("cx", function(d) {
                     // console.log('Enter - ', d.registrationNumber, d.estimatedTime);
                     return d3.round(x(d.stop.Location_Easting), 0);
@@ -284,28 +285,58 @@ var bus = (function(){
                 .attr("cy", function(d) {
                     return d3.round(y(d.stop.Location_Northing), 0);
                 })
-                .attr("r", 2)
+                .attr("r", 1.5)
                 .on("mouseover", busHover)
                 // .on("touchstart", busHover)
                 .on("mouseout", busUnHover)
                 // .on("touchend", busUnHover)
-                .attr("style", "fill: #FF1800");
+                .attr("style", function(d){
+                    return d.lineName.indexOf('RB') ? "fill: #FF1800" : "fill: #738FFF"
+                })
+                // .attr('opacity', 0)
 
                 bus.exit().remove();
+
+            bus.transition()
+                .duration(0)
+                .attr('opacity', 1);
+
+            // Add Buses
+            bus.transition()
+                .duration(1000)
+                .delay(function(){ return Math.random() * 29000 })
+                .attr("cx", function(d) {
+                    return d3.round(x(d.stop.Location_Easting), 0);
+                })
+                .attr("cy", function(d) {
+                    return d3.round(y(d.stop.Location_Northing), 0);
+                });
+
         });
 
         function busHover(d){
+            d3.select(this)
+                .classed('is-active', true);
+
             // Show the tooltip
             clearTimeout(tooltipTimeout);
             var stop = d;
+
+            var time = 'MINUTE';
+            if (d.estimatedTime != 1){
+                time += 'S';
+            }
+
             showTooltip(
-                line + ' arriving at ' + d.stop.Stop_Name + ' in ' + d.estimatedTime + ' mins',
+                [d.lineName, d.destination.toUpperCase(), 'ARRIVING IN ' + d.estimatedTime + ' ' + time + ' AT', d.stop.Stop_Name],
                 d3.round(x(d.stop.Location_Easting), 0),
                 d3.round(y(d.stop.Location_Northing), 0)
             );
         }
 
         function busUnHover(d){
+            d3.select(this)
+                .classed('is-active', false);
             clearTimeout(tooltipTimeout);
             tooltipTimeout = setTimeout(hideTooltip, 500);
         }

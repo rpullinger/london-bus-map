@@ -24,7 +24,7 @@ circle{
     cursor: pointer;
 
     &.is-active{
-        fill: #fff;
+        fill: #fff !important;
     }
 }
 

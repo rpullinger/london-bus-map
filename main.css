@@ -205,5 +205,5 @@ circle {
 .hide-stops .stops {
   display: none; }
 
-.hide-buses .buses {
+.hide-buses [class^="bus"] {
   display: none; }

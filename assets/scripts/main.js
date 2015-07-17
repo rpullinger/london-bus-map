@@ -30,12 +30,20 @@ var bus = (function(){
         addTooltip();
 
 
+        var startZoom = 1.5,
+            increment = 1;
+
+        if(window.innerWidth < 700){
+            startZoom = 2;
+            increment = 10;
+        }
+
         $('.js-map').panzoom({
             cursor: 'pointer',
             contain: 'invert',
-            increment: 1,
+            increment: increment,
             minScale: 1,
-            maxScale: 15,
+            maxScale: 60,
             $zoomIn: $('.js-zoom-in'),
             $zoomOut: $('.js-zoom-out'),
         }).on('panzoomzoom', function(e, panzoom, scale, opts){
@@ -43,11 +51,9 @@ var bus = (function(){
         });
 
 
-        var startZoom = 1.5;
-        if(window.innerWidth < 700){
-            startZoom = 2;
-        }
-        $('.js-map').panzoom("zoom", 1.5);
+
+
+        $('.js-map').panzoom("zoom", 1.7);
 
     }
 
@@ -95,13 +101,20 @@ var bus = (function(){
 
     function resizeText(selection){
         var bb = this.getBBox(),
-            maxWidth = window.innerWidth,
+            // maxWidth = window.innerWidth,
+            maxWidth = 3000,
             widthTransform = maxWidth / bb.width,
-            modifier = zoom > 2 ? zoom / 1 : zoom,
+            modifier = zoom > 10 ? zoom * 1.5 : zoom * 2,
             value = 75 * widthTransform / modifier;
+
+        // if (window.innerWidth < 700){
+        //     value = 500 * widthTransform / modifier;
+        // }
 
         if (value > 500){
             value = 500;
+        } else if (value < 4){
+            value = 4
         }
 
         this.setAttribute("font-size", value);
@@ -167,9 +180,9 @@ var bus = (function(){
                 })
                 .attr("r", 1)
                 .on("mouseover", setActive)
-                // .on("touchstart", setActive)
+                .on("touchstart", setActive)
                 .on("mouseout", setUnActive)
-                // .on("touchend", setUnActive);
+                .on("touchend", setUnActive);
 
             // Stops
             stops = [];
@@ -211,6 +224,13 @@ var bus = (function(){
 
                 $('#buses').prop('checked', true);
             });
+
+
+            var time = $('.js-time');
+            var format = d3.time.format("%Y-%m-%dT%H:%M:%S");
+            setInterval(function(){
+                time.html(format(new Date()));
+            }, 1000);
 
         });
 
@@ -287,9 +307,9 @@ var bus = (function(){
                 })
                 .attr("r", 1.5)
                 .on("mouseover", busHover)
-                // .on("touchstart", busHover)
+                .on("touchstart", busHover)
                 .on("mouseout", busUnHover)
-                // .on("touchend", busUnHover)
+                .on("touchend", busUnHover)
                 .attr("style", function(d){
                     return d.lineName.indexOf('RB') ? "fill: #FF1800" : "fill: #738FFF"
                 })
@@ -303,7 +323,7 @@ var bus = (function(){
 
             // Add Buses
             bus.transition()
-                .duration(1000)
+                .duration(2000)
                 .delay(function(){ return Math.random() * 29000 })
                 .attr("cx", function(d) {
                     return d3.round(x(d.stop.Location_Easting), 0);
@@ -328,7 +348,7 @@ var bus = (function(){
             }
 
             showTooltip(
-                [d.lineName, d.destination.toUpperCase(), 'ARRIVING IN ' + d.estimatedTime + ' ' + time + ' AT', d.stop.Stop_Name],
+                [d.lineName, d.destination.toUpperCase(), 'ARRIVING IN ' + d.estimatedTime + ' ' + time + ' AT', d.stop.Stop_Name, 'REGISTRATION ' + d.registrationNumber],
                 d3.round(x(d.stop.Location_Easting), 0),
                 d3.round(y(d.stop.Location_Northing), 0)
             );

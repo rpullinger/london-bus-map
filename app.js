@@ -31,7 +31,7 @@ var bus = (function(){
 
 
         var startZoom = 1.5,
-            increment = 2;
+            increment = 1;
 
         if(window.innerWidth < 700){
             startZoom = 2;
@@ -53,7 +53,7 @@ var bus = (function(){
 
 
 
-        $('.js-map').panzoom("zoom", 1);
+        $('.js-map').panzoom("zoom", 1.7);
 
     }
 
@@ -224,6 +224,13 @@ var bus = (function(){
 
                 $('#buses').prop('checked', true);
             });
+
+
+            var time = $('.js-time');
+            var format = d3.time.format("%Y-%m-%dT%H:%M:%S");
+            setInterval(function(){
+                time.html(format(new Date()));
+            }, 1000);
 
         });
 
